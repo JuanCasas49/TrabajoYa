@@ -1,0 +1,8 @@
+{
+  "name": "trabajoya-tests", "private": true, "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1",
+    "test:localization": "node --test localization.test.js",
+    "test:failure": "node --test failure.test.js"
+  }
+}

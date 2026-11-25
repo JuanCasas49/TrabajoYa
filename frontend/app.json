@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "TrabajoYa",
+    "slug": "trabajoya",
+    "scheme": "trabajoya",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F3F9FA",
+    "web": { "bundler": "metro", "output": "single" }
+  }
+}

@@ -1,0 +1,125 @@
+# Sistema distribuido local: 5 regiones (API + PostgreSQL propio cada una) + RabbitMQ + Gateway.
+#   docker compose up --build        -> gateway en http://localhost:8080 · RabbitMQ UI en http://localhost:15672 (guest/guest)
+x-api: &api
+  build: ./backend
+  restart: unless-stopped
+  depends_on:
+    rabbitmq: { condition: service_healthy }
+
+x-env: &env
+  JWT_SECRET: dev-secret-change-me
+  AMQP_URL: amqp://guest:guest@rabbitmq:5672
+
+x-pg: &pg
+  image: postgres:16-alpine
+  restart: unless-stopped
+  environment: { POSTGRES_USER: app, POSTGRES_PASSWORD: app, POSTGRES_DB: trabajoya }
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U app -d trabajoya"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  gateway:
+    build: ./gateway
+    restart: unless-stopped
+    ports: ["8080:8080"]
+    environment:
+      PORT: 8080
+      HEALTH_INTERVAL_MS: 3000
+      AMQP_URL: amqp://guest:guest@rabbitmq:5672
+      REGION_URLS: '{"CO":"http://api-co:4000","US":"http://api-us:4000","BR":"http://api-br:4000","FR":"http://api-fr:4000","DE":"http://api-de:4000"}'
+    depends_on:
+      api-co: { condition: service_started }
+      api-us: { condition: service_started }
+      api-br: { condition: service_started }
+      api-fr: { condition: service_started }
+      api-de: { condition: service_started }
+
+  pg-co:
+    <<: *pg
+    volumes: ["pg-co-data:/var/lib/postgresql/data"]
+
+  api-co:
+    <<: *api
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      pg-co: { condition: service_healthy }
+    environment:
+      <<: *env
+      REGION: CO
+      DATABASE_URL: postgres://app:app@pg-co:5432/trabajoya
+
+  pg-us:
+    <<: *pg
+    volumes: ["pg-us-data:/var/lib/postgresql/data"]
+
+  api-us:
+    <<: *api
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      pg-us: { condition: service_healthy }
+    environment:
+      <<: *env
+      REGION: US
+      DATABASE_URL: postgres://app:app@pg-us:5432/trabajoya
+
+  pg-br:
+    <<: *pg
+    volumes: ["pg-br-data:/var/lib/postgresql/data"]
+
+  api-br:
+    <<: *api
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      pg-br: { condition: service_healthy }
+    environment:
+      <<: *env
+      REGION: BR
+      DATABASE_URL: postgres://app:app@pg-br:5432/trabajoya
+
+  pg-fr:
+    <<: *pg
+    volumes: ["pg-fr-data:/var/lib/postgresql/data"]
+
+  api-fr:
+    <<: *api
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      pg-fr: { condition: service_healthy }
+    environment:
+      <<: *env
+      REGION: FR
+      DATABASE_URL: postgres://app:app@pg-fr:5432/trabajoya
+
+  pg-de:
+    <<: *pg
+    volumes: ["pg-de-data:/var/lib/postgresql/data"]
+
+  api-de:
+    <<: *api
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      pg-de: { condition: service_healthy }
+    environment:
+      <<: *env
+      REGION: DE
+      DATABASE_URL: postgres://app:app@pg-de:5432/trabajoya
+
+volumes:
+  pg-co-data:
+  pg-us-data:
+  pg-br-data:
+  pg-fr-data:
+  pg-de-data:

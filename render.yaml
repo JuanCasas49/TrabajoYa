@@ -1,0 +1,154 @@
+# Blueprint de Render: 5 APIs regionales (una por país, cada una con su base Neon) + gateway + web estática.
+# Cada región es un servicio independiente: si una cae, las demás siguen funcionando.
+services:
+  - type: web
+    name: trabajoya-api-co
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION
+        value: CO
+      - key: DATABASE_URL          # base Neon propia de CO
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: trabajoya-api-us
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION
+        value: US
+      - key: DATABASE_URL          # base Neon propia de US
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: trabajoya-api-br
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION
+        value: BR
+      - key: DATABASE_URL          # base Neon propia de BR
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: trabajoya-api-fr
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION
+        value: FR
+      - key: DATABASE_URL          # base Neon propia de FR
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: trabajoya-api-de
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION
+        value: DE
+      - key: DATABASE_URL          # base Neon propia de DE
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: AMQP_URL
+        sync: false
+
+  - type: web
+    name: trabajoya-gateway
+    runtime: node
+    plan: free
+    rootDir: gateway
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: REGION_URL_CO
+        sync: false
+      - key: REGION_URL_US
+        sync: false
+      - key: REGION_URL_BR
+        sync: false
+      - key: REGION_URL_FR
+        sync: false
+      - key: REGION_URL_DE
+        sync: false
+      - key: AMQP_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
+  - type: web
+    name: trabajoya-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npx expo install react react-native react-native-web react-dom @expo/metro-runtime expo-image-picker @react-native-async-storage/async-storage react-native-screens react-native-safe-area-context expo-font @expo-google-fonts/plus-jakarta-sans && npx expo export --platform web
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: EXPO_PUBLIC_GATEWAY_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
